@@ -1,0 +1,273 @@
+{
+  "lanes": [
+    "Student UI",
+    "Node host",
+    "SDK + Claude",
+    "Plugin bundle",
+    "Owned projects"
+  ],
+  "arrows": [
+    [
+      0,
+      1,
+      "1. Validate the plugin experiment"
+    ],
+    [
+      1,
+      4,
+      "2. Prepare two private projects"
+    ],
+    [
+      1,
+      3,
+      "3. Resolve the intended local root"
+    ],
+    [
+      1,
+      2,
+      "4. Pass local plugin configuration"
+    ],
+    [
+      1,
+      2,
+      "5. Dispatch the namespaced prompt"
+    ],
+    [
+      1,
+      2,
+      "6. Run the actual SDK query"
+    ],
+    [
+      2,
+      1,
+      "7. Inspect loaded plugins and diagnostics"
+    ],
+    [
+      3,
+      2,
+      "8. Inspect namespaced components"
+    ],
+    [
+      3,
+      4,
+      "9. Observe the plugin\u2019s real hook"
+    ],
+    [
+      3,
+      2,
+      "10. Connect the packaged local MCP server"
+    ],
+    [
+      2,
+      4,
+      "11. Record completed manifest Reads"
+    ],
+    [
+      1,
+      2,
+      "12. Reuse the same bundle across projects"
+    ],
+    [
+      1,
+      0,
+      "13. Format actual assistant answers"
+    ]
+  ],
+  "steps": [
+    {
+      "number": 1,
+      "title": "Validate the plugin experiment",
+      "source": "src/agent.ts",
+      "code": "if (!value || typeof value !== \"object\" || Array.isArray(value) || !MODES.includes((value as RunConfig).mode)) throw new Error(\"Choose a listed plugin experiment.\");\n return { mode: (value as RunConfig).mode };",
+      "language": "typescript",
+      "explanation": "Accept a listed classroom mode. Browser input cannot supply arbitrary plugin code, remote locations or filesystem paths.",
+      "firstLine": 15,
+      "lastLine": 16,
+      "anchors": [
+        "if (!value || typeof value !== \"object\" || Array.isArray(value) || !MODES.includes((value as RunConfig).mode)) throw new Error(\"Choose a listed plugin experiment.\");"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 1. Accept a listed classroom mode. Browser input cannot supply arbitrary plugin code, remote locations or filesystem paths. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 2,
+      "title": "Prepare two private projects",
+      "source": "src/agent.ts",
+      "code": "for (const [cwd, project] of [[d.cwd,\"PROJECT-A-20\"],[d.second,\"PROJECT-B-20\"]])\n  await writeFile(resolve(cwd,\"classroom.json\"),JSON.stringify({project,topic:\"Local SDK plugins\",task:\"Verify namespaced plugin skills\"},null,2));",
+      "language": "typescript",
+      "explanation": "Write distinct project manifests in owned private directories. The shared plugin is kept outside those projects and is not modified.",
+      "firstLine": 45,
+      "lastLine": 46,
+      "anchors": [
+        "for (const [cwd, project] of [[d.cwd,\"PROJECT-A-20\"],[d.second,\"PROJECT-B-20\"]])"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 2. Write distinct project manifests in owned private directories. The shared plugin is kept outside those projects and is not modified. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 3,
+      "title": "Resolve the intended local root",
+      "source": "src/agent.ts",
+      "code": "const first = resolve(PLUGINS, \"classroom-tools\");\n if (c.mode === \"relative\") return [relative(cwd, first).replaceAll(\"\\\\\", \"/\")];\n return c.mode === \"pair\" ? [first, resolve(PLUGINS, \"classroom-notes\")] : [first];",
+      "language": "typescript",
+      "explanation": "Compare a fixed absolute plugin root with a path relative to the query working directory. The selected path identifies the root, not the skills subdirectory.",
+      "firstLine": 26,
+      "lastLine": 28,
+      "anchors": [
+        "const first = resolve(PLUGINS, \"classroom-tools\");"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 3. Compare a fixed absolute plugin root with a path relative to the query working directory. The selected path identifies the root, not the skills subdirectory. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 4,
+      "title": "Pass local plugin configuration",
+      "source": "src/agent.ts",
+      "code": "plugins: pluginPaths(c,cwd,d.root).map(path => ({type:\"local\" as const,path})),\n  settingSources:[], skills:[], tools:[\"Read\"], allowedTools:[\"Read\"],\n  disallowedTools:[\"Bash\",\"Write\",\"Edit\",\"Agent\",\"WebFetch\",\"WebSearch\"],",
+      "language": "typescript",
+      "explanation": "Configure each plugin with type local. Explicit plugin loading is separate from filesystem settings and model skill scope.",
+      "firstLine": 57,
+      "lastLine": 59,
+      "anchors": [
+        "plugins: pluginPaths(c,cwd,d.root).map(path => ({type:\"local\" as const,path})),"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 4. Configure each plugin with type local. Explicit plugin loading is separate from filesystem settings and model skill scope. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 5,
+      "title": "Dispatch the namespaced prompt",
+      "source": "src/agent.ts",
+      "code": "const prompt=[\"missing\",\"invalid\"].includes(c.mode) ? PROMPTS.ordinary : `/${plugin}:greet Read this exact manifest: ${JSON.stringify(resolve(cwd,\"classroom.json\").replaceAll(\"\\\\\",\"/\"))}`;",
+      "language": "typescript",
+      "explanation": "Send the plugin-prefixed greet name as an ordinary prompt. Its argument identifies the exact project manifest the skill may read.",
+      "firstLine": 84,
+      "lastLine": 84,
+      "anchors": [
+        "const prompt=[\"missing\",\"invalid\"].includes(c.mode) ? PROMPTS.ordinary : `/${plugin}:greet Read this exact manifest: ${JSON.stringify(resolve(cwd,\"classroom.json\").replaceAll(\"\\\\\",\"/\"))}`;"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 5. Send the plugin-prefixed greet name as an ordinary prompt. Its argument identifies the exact project manifest the skill may read. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 6,
+      "title": "Run the actual SDK query",
+      "source": "src/agent.ts",
+      "code": "const run=query({prompt,options});let gotResult=false;\n  try {",
+      "language": "typescript",
+      "explanation": "The SDK runtime loads the local bundle and manages Claude\u2019s native message and tool loop. The host does not fabricate a plugin response.",
+      "firstLine": 85,
+      "lastLine": 86,
+      "anchors": [
+        "const run=query({prompt,options});let gotResult=false;"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 6. The SDK runtime loads the local bundle and manages Claude\u2019s native message and tool loop. The host does not fabricate a plugin response. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 7,
+      "title": "Inspect loaded plugins and diagnostics",
+      "source": "src/agent.ts",
+      "code": "phase,plugins:message.plugins,pluginErrors:message.plugin_errors || [],",
+      "language": "typescript",
+      "explanation": "Preserve actual plugin rows and plugin_errors. Built-in entries may coexist with the classroom plugin; a missing requested root is still a loading failure.",
+      "firstLine": 91,
+      "lastLine": 91,
+      "anchors": [
+        "phase,plugins:message.plugins,pluginErrors:message.plugin_errors || [],"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 7. Preserve actual plugin rows and plugin_errors. Built-in entries may coexist with the classroom plugin; a missing requested root is still a loading failure. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 8,
+      "title": "Inspect namespaced components",
+      "source": "src/agent.ts",
+      "code": "skills:message.skills,commands:message.slash_commands,\n      agents:message.agents || [],mcpServers:message.mcp_servers,",
+      "language": "typescript",
+      "explanation": "Read namespaced skills and commands, discovered agents and MCP connection status. Discovery and connection do not establish agent or tool invocation.",
+      "firstLine": 92,
+      "lastLine": 93,
+      "anchors": [
+        "skills:message.skills,commands:message.slash_commands,"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 8. Read namespaced skills and commands, discovered agents and MCP connection status. Discovery and connection do not establish agent or tool invocation. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 9,
+      "title": "Observe the plugin\u2019s real hook",
+      "source": "plugins/classroom-tools/hooks/observe.cjs",
+      "code": "const event=JSON.parse(input);\n // The host supplies an owned private receipt path; never write into the plugin.\n if(process.env.PLUGIN_LAB_RECEIPT)writeFileSync(process.env.PLUGIN_LAB_RECEIPT,JSON.stringify({source:\"plugin SessionStart\",sessionId:event.session_id,event:event.hook_event_name}),{mode:0o600});",
+      "language": "javascript",
+      "explanation": "The packaged SessionStart hook writes a receipt to the private path supplied by the host. It does not write into the shared plugin directory.",
+      "firstLine": 6,
+      "lastLine": 8,
+      "anchors": [
+        "const event=JSON.parse(input);"
+      ],
+      "sourceSHA256": "1e27b9d160c049f9877d39979e00b56ae0882de2c9ae83fb29e04c63223b5ab6",
+      "narration": "Step 9. The packaged SessionStart hook writes a receipt to the private path supplied by the host. It does not write into the shared plugin directory. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 10,
+      "title": "Connect the packaged local MCP server",
+      "source": "plugins/classroom-tools/mcp/server.mjs",
+      "code": "await server.connect(new StdioServerTransport());",
+      "language": "javascript",
+      "explanation": "The bundled stdio server uses the official MCP SDK. This lesson verifies its connection metadata and does not call its tool.",
+      "firstLine": 6,
+      "lastLine": 6,
+      "anchors": [
+        "await server.connect(new StdioServerTransport());"
+      ],
+      "sourceSHA256": "2695b6d27dcdefc8288649b360b9d401b1ed99b85a2d4f7432008fafd635e03f",
+      "narration": "Step 10. The bundled stdio server uses the official MCP SDK. This lesson verifies its connection metadata and does not call its tool. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 11,
+      "title": "Record completed manifest Reads",
+      "source": "src/agent.ts",
+      "code": "if(input.hook_event_name===\"PostToolUse\" && input.tool_name===\"Read\")completedReads.push(phase+\":\"+relative(cwd,resolve(cwd,String((input.tool_input as {file_path:string}).file_path))).replaceAll(\"\\\\\",\"/\"));\n    return {};",
+      "language": "typescript",
+      "explanation": "A successful host tool hook records the actual project-manifest Read. Response markers are checked separately from these completed calls.",
+      "firstLine": 65,
+      "lastLine": 66,
+      "anchors": [
+        "if(input.hook_event_name===\"PostToolUse\" && input.tool_name===\"Read\")completedReads.push(phase+\":\"+relative(cwd,resolve(cwd,String((input.tool_input as {file_path:string}).file_path))).replaceAll(\"\\\\\",\"/\"));"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 11. A successful host tool hook records the actual project-manifest Read. Response markers are checked separately from these completed calls. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 12,
+      "title": "Reuse the same bundle across projects",
+      "source": "src/agent.ts",
+      "code": "const stages=c.mode===\"pair\" ? [[\"tools\",d.cwd,\"classroom-tools\"],[\"notes\",d.cwd,\"classroom-notes\"]] : c.mode===\"share\" ? [[\"project-a\",d.cwd,\"classroom-tools\"],[\"project-b\",d.second,\"classroom-tools\"]] : [[\"main\",d.cwd,c.mode===\"no-manifest\" ? \"classroom-lite\" : \"classroom-tools\"]];",
+      "language": "typescript",
+      "explanation": "The Share experiment starts queries in project A and project B using the same plugin root. Actual project facts and unchanged source hashes demonstrate the reuse.",
+      "firstLine": 80,
+      "lastLine": 80,
+      "anchors": [
+        "const stages=c.mode===\"pair\" ? [[\"tools\",d.cwd,\"classroom-tools\"],[\"notes\",d.cwd,\"classroom-notes\"]] : c.mode===\"share\" ? [[\"project-a\",d.cwd,\"classroom-tools\"],[\"project-b\",d.second,\"classroom-tools\"]] : [[\"main\",d.cwd,c.mode===\"no-manifest\" ? \"classroom-lite\" : \"classroom-tools\"]];"
+      ],
+      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "narration": "Step 12. The Share experiment starts queries in project A and project B using the same plugin root. Actual project facts and unchanged source hashes demonstrate the reuse. This source excerpt shows the corresponding application statement."
+    },
+    {
+      "number": 13,
+      "title": "Format actual assistant answers",
+      "source": "src/client.ts",
+      "code": "if (e.type === \"answer\") renderMarkdown($(\"answer\"), e.text);\n  if (e.type === \"result\") {\n    $(\"status\").textContent = e.status; $(\"cost\").textContent = \"$\" + e.costUsd.toFixed(5);",
+      "language": "typescript",
+      "explanation": "Parse and sanitize real Markdown answers. Keep plugin metadata, diagnostics, hook receipts and result text distinct.",
+      "firstLine": 19,
+      "lastLine": 21,
+      "anchors": [
+        "if (e.type === \"answer\") renderMarkdown($(\"answer\"), e.text);"
+      ],
+      "sourceSHA256": "b20e0ff318dbedb6f185494c25ea7ba8a1a5307098576d83c31fbc52a13464ed",
+      "narration": "Step 13. Parse and sanitize real Markdown answers. Keep plugin metadata, diagnostics, hook receipts and result text distinct. This source excerpt shows the corresponding application statement."
+    }
+  ]
+}
