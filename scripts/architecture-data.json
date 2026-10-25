@@ -55,7 +55,7 @@
     [
       3,
       2,
-      "10. Connect the packaged local MCP server"
+      "10. Confirm the local MCP connection"
     ],
     [
       2,
@@ -86,7 +86,7 @@
       "anchors": [
         "if (!value || typeof value !== \"object\" || Array.isArray(value) || !MODES.includes((value as RunConfig).mode)) throw new Error(\"Choose a listed plugin experiment.\");"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 1. Accept a listed classroom mode. Browser input cannot supply arbitrary plugin code, remote locations or filesystem paths. This source excerpt shows the corresponding application statement."
     },
     {
@@ -101,7 +101,7 @@
       "anchors": [
         "for (const [cwd, project] of [[d.cwd,\"PROJECT-A-20\"],[d.second,\"PROJECT-B-20\"]])"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 2. Write distinct project manifests in owned private directories. The shared plugin is kept outside those projects and is not modified. This source excerpt shows the corresponding application statement."
     },
     {
@@ -116,7 +116,7 @@
       "anchors": [
         "const first = resolve(PLUGINS, \"classroom-tools\");"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 3. Compare a fixed absolute plugin root with a path relative to the query working directory. The selected path identifies the root, not the skills subdirectory. This source excerpt shows the corresponding application statement."
     },
     {
@@ -131,7 +131,7 @@
       "anchors": [
         "plugins: pluginPaths(c,cwd,d.root).map(path => ({type:\"local\" as const,path})),"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 4. Configure each plugin with type local. Explicit plugin loading is separate from filesystem settings and model skill scope. This source excerpt shows the corresponding application statement."
     },
     {
@@ -146,7 +146,7 @@
       "anchors": [
         "const prompt=[\"missing\",\"invalid\"].includes(c.mode) ? PROMPTS.ordinary : `/${plugin}:greet Read this exact manifest: ${JSON.stringify(resolve(cwd,\"classroom.json\").replaceAll(\"\\\\\",\"/\"))}`;"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 5. Send the plugin-prefixed greet name as an ordinary prompt. Its argument identifies the exact project manifest the skill may read. This source excerpt shows the corresponding application statement."
     },
     {
@@ -161,7 +161,7 @@
       "anchors": [
         "const run=query({prompt,options});let gotResult=false;"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 6. The SDK runtime loads the local bundle and manages Claude\u2019s native message and tool loop. The host does not fabricate a plugin response. This source excerpt shows the corresponding application statement."
     },
     {
@@ -176,7 +176,7 @@
       "anchors": [
         "phase,plugins:message.plugins,pluginErrors:message.plugin_errors || [],"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 7. Preserve actual plugin rows and plugin_errors. Built-in entries may coexist with the classroom plugin; a missing requested root is still a loading failure. This source excerpt shows the corresponding application statement."
     },
     {
@@ -191,7 +191,7 @@
       "anchors": [
         "skills:message.skills,commands:message.slash_commands,"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 8. Read namespaced skills and commands, discovered agents and MCP connection status. Discovery and connection do not establish agent or tool invocation. This source excerpt shows the corresponding application statement."
     },
     {
@@ -211,18 +211,18 @@
     },
     {
       "number": 10,
-      "title": "Connect the packaged local MCP server",
-      "source": "plugins/classroom-tools/mcp/server.mjs",
-      "code": "await server.connect(new StdioServerTransport());",
-      "language": "javascript",
-      "explanation": "The bundled stdio server uses the official MCP SDK. This lesson verifies its connection metadata and does not call its tool.",
-      "firstLine": 6,
-      "lastLine": 6,
+      "title": "Confirm the local MCP connection",
+      "source": "src/agent.ts",
+      "code": "servers=(await run.mcpServerStatus())\n        .filter(s=>s.name===\"plugin:classroom-tools:classroom\")\n        .map(s=>({name:s.name,status:s.status}));\n       if(servers.length && servers.every(s=>s.status!==\"pending\"))break;\n       await new Promise(ok=>setTimeout(ok,250));",
+      "language": "typescript",
+      "explanation": "Initialization can report pending. Poll the live SDK control status for a bounded interval and preserve the actual final state. This verifies a connection without calling an MCP tool.",
+      "firstLine": 99,
+      "lastLine": 103,
       "anchors": [
-        "await server.connect(new StdioServerTransport());"
+        "servers=(await run.mcpServerStatus())"
       ],
-      "sourceSHA256": "2695b6d27dcdefc8288649b360b9d401b1ed99b85a2d4f7432008fafd635e03f",
-      "narration": "Step 10. The bundled stdio server uses the official MCP SDK. This lesson verifies its connection metadata and does not call its tool. This source excerpt shows the corresponding application statement."
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
+      "narration": "Step 10. Initialization can report pending. Poll the live SDK control status for a bounded interval and preserve the actual final state. This verifies a connection without calling an MCP tool. This source excerpt shows the corresponding application statement."
     },
     {
       "number": 11,
@@ -236,7 +236,7 @@
       "anchors": [
         "if(input.hook_event_name===\"PostToolUse\" && input.tool_name===\"Read\")completedReads.push(phase+\":\"+relative(cwd,resolve(cwd,String((input.tool_input as {file_path:string}).file_path))).replaceAll(\"\\\\\",\"/\"));"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 11. A successful host tool hook records the actual project-manifest Read. Response markers are checked separately from these completed calls. This source excerpt shows the corresponding application statement."
     },
     {
@@ -251,7 +251,7 @@
       "anchors": [
         "const stages=c.mode===\"pair\" ? [[\"tools\",d.cwd,\"classroom-tools\"],[\"notes\",d.cwd,\"classroom-notes\"]] : c.mode===\"share\" ? [[\"project-a\",d.cwd,\"classroom-tools\"],[\"project-b\",d.second,\"classroom-tools\"]] : [[\"main\",d.cwd,c.mode===\"no-manifest\" ? \"classroom-lite\" : \"classroom-tools\"]];"
       ],
-      "sourceSHA256": "0cfd1b8736601b80a41b2b694503725389ebffc8924968f8e2938263ed46ae74",
+      "sourceSHA256": "c97434f984b459820537ce1de44d9f9f095ed5befec02517e3578f6bdcec2a24",
       "narration": "Step 12. The Share experiment starts queries in project A and project B using the same plugin root. Actual project facts and unchanged source hashes demonstrate the reuse. This source excerpt shows the corresponding application statement."
     },
     {
@@ -261,12 +261,12 @@
       "code": "if (e.type === \"answer\") renderMarkdown($(\"answer\"), e.text);\n  if (e.type === \"result\") {\n    $(\"status\").textContent = e.status; $(\"cost\").textContent = \"$\" + e.costUsd.toFixed(5);",
       "language": "typescript",
       "explanation": "Parse and sanitize real Markdown answers. Keep plugin metadata, diagnostics, hook receipts and result text distinct.",
-      "firstLine": 19,
-      "lastLine": 21,
+      "firstLine": 20,
+      "lastLine": 22,
       "anchors": [
         "if (e.type === \"answer\") renderMarkdown($(\"answer\"), e.text);"
       ],
-      "sourceSHA256": "b20e0ff318dbedb6f185494c25ea7ba8a1a5307098576d83c31fbc52a13464ed",
+      "sourceSHA256": "df81aa4d256268103ea5375f2328edaca4b7761d807eb7dac388501b83048537",
       "narration": "Step 13. Parse and sanitize real Markdown answers. Keep plugin metadata, diagnostics, hook receipts and result text distinct. This source excerpt shows the corresponding application statement."
     }
   ]

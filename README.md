@@ -175,14 +175,18 @@ const receipt=process.env.PLUGIN_LAB_RECEIPT;
  }
 ```
 
-### 10. Connect the packaged local MCP server
+### 10. Confirm the local MCP connection
 
-The bundled stdio server uses the official MCP SDK. This lesson verifies its connection metadata and does not call its tool.
+Initialization can report pending. Poll the live SDK control status for a bounded interval and preserve the actual final state. This verifies a connection without calling an MCP tool.
 
-Source: `plugins/classroom-tools/mcp/server.mjs`, lines 6–6. Selected excerpt; surrounding code omitted.
+Source: `src/agent.ts`, lines 99–103. Selected excerpt; surrounding code omitted.
 
 ```typescript
-await server.connect(new StdioServerTransport());
+servers=(await run.mcpServerStatus())
+        .filter(s=>s.name==="plugin:classroom-tools:classroom")
+        .map(s=>({name:s.name,status:s.status}));
+       if(servers.length && servers.every(s=>s.status!=="pending"))break;
+       await new Promise(ok=>setTimeout(ok,250));
 ```
 
 ### 11. Record completed manifest Reads
@@ -210,7 +214,7 @@ const stages=c.mode==="pair" ? [["tools",d.cwd,"classroom-tools"],["notes",d.cwd
 
 Parse and sanitize real Markdown answers. Keep plugin metadata, diagnostics, hook receipts and result text distinct.
 
-Source: `src/client.ts`, lines 19–21. Selected excerpt; surrounding code omitted.
+Source: `src/client.ts`, lines 20–22. Selected excerpt; surrounding code omitted.
 
 ```typescript
 if (e.type === "answer") renderMarkdown($("answer"), e.text);

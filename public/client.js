@@ -21,6 +21,8 @@ function receive(e) {
     }
     if (e.type === "initialized")
         json("discovery", e.metadata);
+    if (e.type === "mcp-status")
+        json("mcp-status", { phase: e.phase, servers: e.servers });
     if (e.type === "answer")
         renderMarkdown($("answer"), e.text);
     if (e.type === "result") {
@@ -29,7 +31,7 @@ function receive(e) {
         renderMarkdown($("answer"), e.text);
     }
     if (e.type === "evidence") {
-        json("evidence", { mode: e.mode, completedReads: e.completedReads, returnedMarkers: e.returnedMarkers, pluginFilesUnchanged: e.pluginFilesUnchanged, hookReceipts: e.hookReceipts, sdkQueries: e.sdkQueries, initializations: e.initializations, turns: e.turns });
+        json("evidence", { mode: e.mode, completedReads: e.completedReads, returnedMarkers: e.returnedMarkers, pluginFilesUnchanged: e.pluginFilesUnchanged, mcpStatuses: e.mcpStatuses, hookReceipts: e.hookReceipts, sdkQueries: e.sdkQueries, initializations: e.initializations, turns: e.turns });
         const tr = document.createElement("tr"), config = rows.filter(x => x.type === "options").at(-1);
         for (const value of [config.config.mode, e.initializations.flatMap(i => i.plugins.map(p => p.name)).join(", ") || "None", e.returnedMarkers.join(", ") || "None", e.completedReads.join(", ") || "No model Read", String(e.hookReceipts.length)]) {
             const td = document.createElement("td");
@@ -54,6 +56,7 @@ button.onclick = async () => {
     $("events").replaceChildren();
     $("notice").textContent = "";
     $("status").textContent = "Running…";
+    json("mcp-status", {});
     json("init", {});
     json("discovery", {});
     $("session").textContent = "—";

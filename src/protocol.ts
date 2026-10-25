@@ -6,9 +6,10 @@ export type LabEvent =
  | { type: "fixtures"; files: { name: string; contents: string }[] }
  | { type: "options"; config: RunConfig; options: Record<string, unknown> }
  | { type: "initialized"; model: string; sessionId: string; metadata: Init }
+ | { type: "mcp-status"; phase: string; servers: {name:string;status:string}[] }
  | { type: "message"; phase: string; sdkType: string; summary: string }
  | { type: "tool"; name: string; target: string }
  | { type: "answer"; text: string }
  | { type: "result"; status: string; text: string; sessionId: string; costUsd: number }
- | { type: "evidence"; mode: Mode; completedReads: string[]; returnedMarkers: string[]; pluginFilesUnchanged: boolean; hookReceipts: unknown[]; initializations: Init[]; turns: Turn[]; sdkQueries: number }
+ | { type: "evidence"; mode: Mode; completedReads: string[]; returnedMarkers: string[]; pluginFilesUnchanged: boolean; hookReceipts: unknown[]; mcpStatuses: {phase:string;servers:{name:string;status:string}[]}[]; initializations: Init[]; turns: Turn[]; sdkQueries: number }
  | { type: "notice" | "error"; text: string };

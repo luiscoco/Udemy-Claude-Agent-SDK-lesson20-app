@@ -76,7 +76,7 @@ export async function runAgent(c:RunConfig,emit:(e:LabEvent)=>void,controller=ne
  c=validateConfig(c);const id=randomUUID(),d=await prepareWorkspace(c,id),files=await pluginFiles();
  const digest=(s:string)=>createHash("sha256").update(s).digest("hex"),before=new Map(files.map(f=>[f.name,digest(f.contents)]));
  emit({type:"fixtures",files});
- const completedReads:string[]=[],initializations:Init[]=[],turns:Turn[]=[],hookReceipts:unknown[]=[];
+ const completedReads:string[]=[],initializations:Init[]=[],turns:Turn[]=[],hookReceipts:unknown[]=[],mcpStatuses:{phase:string;servers:{name:string;status:string}[]}[]=[];
  const stages=c.mode==="pair" ? [["tools",d.cwd,"classroom-tools"],["notes",d.cwd,"classroom-notes"]] : c.mode==="share" ? [["project-a",d.cwd,"classroom-tools"],["project-b",d.second,"classroom-tools"]] : [["main",d.cwd,c.mode==="no-manifest" ? "classroom-lite" : "classroom-tools"]];
  for(const [phase,cwd,plugin] of stages) {
   const options=lessonOptions(c,id,cwd,phase,completedReads,controller);
@@ -93,6 +93,17 @@ export async function runAgent(c:RunConfig,emit:(e:LabEvent)=>void,controller=ne
       agents:message.agents || [],mcpServers:message.mcp_servers,
      };
      initializations.push(metadata);emit({type:"initialized",model:message.model,sessionId:message.session_id,metadata});
+     if(message.plugins.some(p=>p.name==="classroom-tools")) {
+      let servers:{name:string;status:string}[]=[];
+      for(let attempt=0;attempt<60;attempt++) {
+       servers=(await run.mcpServerStatus())
+        .filter(s=>s.name==="plugin:classroom-tools:classroom")
+        .map(s=>({name:s.name,status:s.status}));
+       if(servers.length && servers.every(s=>s.status!=="pending"))break;
+       await new Promise(ok=>setTimeout(ok,250));
+      }
+      mcpStatuses.push({phase,servers});emit({type:"mcp-status",phase,servers});
+     }
     }
     if(message.type==="assistant")for(const block of message.message.content) {
      if(block.type==="text")emit({type:"answer",text:redact(block.text)});
@@ -112,7 +123,8 @@ export async function runAgent(c:RunConfig,emit:(e:LabEvent)=>void,controller=ne
  const pluginFilesUnchanged=(await pluginFiles()).every(f=>before.get(f.name)===digest(f.contents));
  const text=turns.map(t=>`### ${t.phase}\n\n${t.text}`).join("\n\n"),returnedMarkers=["TOOLS-PLUGIN-20","NOTES-PLUGIN-20","LITE-PLUGIN-20"].filter(m=>text.includes(m));
  const requiredReads=["missing","invalid"].includes(c.mode) || stages.every(([phase])=>completedReads.includes(phase+":classroom.json"));
- const status=turns.every(t=>t.status==="success") && requiredReads && pluginFilesUnchanged ? "success" : "unverified";
+ const connected=mcpStatuses.every(row=>row.servers.some(s=>s.status==="connected"));
+ const status=connected && turns.every(t=>t.status==="success") && requiredReads && pluginFilesUnchanged ? "success" : "unverified";
  emit({type:"result",status,text,sessionId:turns.at(-1)!.sessionId,costUsd:turns.reduce((sum,t)=>sum+t.costUsd,0)});
- emit({type:"evidence",mode:c.mode,completedReads,returnedMarkers,pluginFilesUnchanged,hookReceipts,initializations,turns,sdkQueries:stages.length});
+ emit({type:"evidence",mode:c.mode,completedReads,returnedMarkers,pluginFilesUnchanged,hookReceipts,mcpStatuses,initializations,turns,sdkQueries:stages.length});
 }

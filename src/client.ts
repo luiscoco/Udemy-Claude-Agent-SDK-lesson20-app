@@ -16,13 +16,14 @@ function receive(e: LabEvent) {
   if (e.type === "options") json("options", e.options);
   if (e.type === "initialized") { $("session").textContent = e.sessionId; json("init", e.metadata); }
   if (e.type === "initialized") json("discovery",e.metadata);
+  if(e.type==="mcp-status")json("mcp-status",{phase:e.phase,servers:e.servers});
   if (e.type === "answer") renderMarkdown($("answer"), e.text);
   if (e.type === "result") {
     $("status").textContent = e.status; $("cost").textContent = "$" + e.costUsd.toFixed(5);
     renderMarkdown($("answer"), e.text);
   }
   if (e.type === "evidence") {
-    json("evidence",{mode:e.mode,completedReads:e.completedReads,returnedMarkers:e.returnedMarkers,pluginFilesUnchanged:e.pluginFilesUnchanged,hookReceipts:e.hookReceipts,sdkQueries:e.sdkQueries,initializations:e.initializations,turns:e.turns});
+    json("evidence",{mode:e.mode,completedReads:e.completedReads,returnedMarkers:e.returnedMarkers,pluginFilesUnchanged:e.pluginFilesUnchanged,mcpStatuses:e.mcpStatuses,hookReceipts:e.hookReceipts,sdkQueries:e.sdkQueries,initializations:e.initializations,turns:e.turns});
 
     const tr = document.createElement("tr"), config = rows.filter(x => x.type === "options").at(-1) as Extract<LabEvent, {type:"options"}>;
     for (const value of [config.config.mode,e.initializations.flatMap(i=>i.plugins.map(p=>p.name)).join(", ") || "None",e.returnedMarkers.join(", ") || "None",e.completedReads.join(", ") || "No model Read",String(e.hookReceipts.length)]) {
@@ -39,7 +40,7 @@ function receive(e: LabEvent) {
 button.onclick = async () => {
   button.disabled = true; $("answer").replaceChildren(); $("events").replaceChildren(); $("notice").textContent = ""; $("status").textContent = "Running…";
 
-  json("init", {}); json("discovery", {}); $("session").textContent="—"; $("cost").textContent="—";
+  json("mcp-status",{});json("init", {}); json("discovery", {}); $("session").textContent="—"; $("cost").textContent="—";
   const config: RunConfig = { mode: ($("mode") as HTMLSelectElement).value as Mode };
   try {
     const response = await fetch("/api/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(config) });
