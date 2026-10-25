@@ -198,15 +198,15 @@
       "number": 9,
       "title": "Observe the plugin\u2019s real hook",
       "source": "plugins/classroom-tools/hooks/observe.cjs",
-      "code": "const event=JSON.parse(input);\n // The host supplies an owned private receipt path; never write into the plugin.\n if(process.env.PLUGIN_LAB_RECEIPT)writeFileSync(process.env.PLUGIN_LAB_RECEIPT,JSON.stringify({source:\"plugin SessionStart\",sessionId:event.session_id,event:event.hook_event_name}),{mode:0o600});",
+      "code": "const receipt=process.env.PLUGIN_LAB_RECEIPT;\n if(receipt) {\n  writeFileSync(receipt,JSON.stringify({\n   source:\"plugin SessionStart\",\n   sessionId:event.session_id,\n   event:event.hook_event_name\n  }),{mode:0o600});\n }",
       "language": "javascript",
       "explanation": "The packaged SessionStart hook writes a receipt to the private path supplied by the host. It does not write into the shared plugin directory.",
-      "firstLine": 6,
-      "lastLine": 8,
+      "firstLine": 8,
+      "lastLine": 15,
       "anchors": [
-        "const event=JSON.parse(input);"
+        "const receipt=process.env.PLUGIN_LAB_RECEIPT;"
       ],
-      "sourceSHA256": "1e27b9d160c049f9877d39979e00b56ae0882de2c9ae83fb29e04c63223b5ab6",
+      "sourceSHA256": "13f750b1e77e15ab08d40b10251e5bd3bbb2e1ad1d3f076d4621970c09051195",
       "narration": "Step 9. The packaged SessionStart hook writes a receipt to the private path supplied by the host. It does not write into the shared plugin directory. This source excerpt shows the corresponding application statement."
     },
     {

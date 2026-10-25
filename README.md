@@ -162,12 +162,17 @@ skills:message.skills,commands:message.slash_commands,
 
 The packaged SessionStart hook writes a receipt to the private path supplied by the host. It does not write into the shared plugin directory.
 
-Source: `plugins/classroom-tools/hooks/observe.cjs`, lines 6–8. Selected excerpt; surrounding code omitted.
+Source: `plugins/classroom-tools/hooks/observe.cjs`, lines 8–15. Selected excerpt; surrounding code omitted.
 
 ```typescript
-const event=JSON.parse(input);
- // The host supplies an owned private receipt path; never write into the plugin.
- if(process.env.PLUGIN_LAB_RECEIPT)writeFileSync(process.env.PLUGIN_LAB_RECEIPT,JSON.stringify({source:"plugin SessionStart",sessionId:event.session_id,event:event.hook_event_name}),{mode:0o600});
+const receipt=process.env.PLUGIN_LAB_RECEIPT;
+ if(receipt) {
+  writeFileSync(receipt,JSON.stringify({
+   source:"plugin SessionStart",
+   sessionId:event.session_id,
+   event:event.hook_event_name
+  }),{mode:0o600});
+ }
 ```
 
 ### 10. Connect the packaged local MCP server
